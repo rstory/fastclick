@@ -449,7 +449,8 @@ particular purpose.\n");
   source << "/** click-compile: -w -fno-access-control */\n";
   header << "#ifndef CLICK_" << package_name << "_HH\n"
 	 << "#define CLICK_" << package_name << "_HH\n"
-	 << "#include <click/package.hh>\n#include <click/element.hh>\n";
+	 << "#include <click/package.hh>\n#include <click/element.hh>\n"
+         << "#ifdef HAVE_DPDK\n#include <click/dpdkdevice.hh>\n#endif\n";
 
   specializer.output_package(package_name, suffix, source, errh);
   specializer.output(header, source);
