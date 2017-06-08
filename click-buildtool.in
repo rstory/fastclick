@@ -974,7 +974,7 @@ EOF
 
     # set up awk program
     if test -n "$package"; then
-	includes="  $includes "'print "#define WANT_MOD_USE_COUNT 1\n#include <click/config.h>\n#include <click/package.hh>\n#include <click/glue.hh>", includefiles;'
+	includes="  $includes "'print "#define WANT_MOD_USE_COUNT 1\n#include <click/config.h>\n#include <click/package.hh>\n#include <click/glue.hh>\n#ifdef HAVE_DPDK\n#include <click/dpdkdevice.hh>\n#endif\n", includefiles;'
 	awk_program='BEGIN {
   OFS = ""; nrebecca = 0; packname="'"$package"'"; includefiles=""
 }
