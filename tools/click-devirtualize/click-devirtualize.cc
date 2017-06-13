@@ -53,6 +53,7 @@
 #define DEVIRTUALIZE_OPT	311
 #define INSTRS_OPT		312
 #define REVERSE_OPT		313
+#define DPDK_OPT		314
 
 static const Clp_Option options[] = {
   { "clickpath", 'C', CLICKPATH_OPT, Clp_ValString, 0 },
@@ -69,6 +70,7 @@ static const Clp_Option options[] = {
   { "reverse", 'r', REVERSE_OPT, 0, Clp_Negate },
   { "source", 's', SOURCE_OPT, 0, Clp_Negate },
   { "userlevel", 'u', USERLEVEL_OPT, 0, Clp_Negate },
+  { "dpdk", 'd', DPDK_OPT, 0, Clp_Negate },
   { "version", 'v', VERSION_OPT, 0, 0 }
 };
 
@@ -212,6 +214,7 @@ Options:\n\
   -r, --reverse                Reverse devirtualization.\n\
   -n, --no-devirtualize CLASS  Don't devirtualize element class CLASS.\n\
   -i, --instructions FILE      Read devirtualization instructions from FILE.\n\
+  -d, --dpdk                   Add /usr/local/include/dpdk to compile flags.\n\
   -C, --clickpath PATH         Use PATH for CLICKPATH.\n\
       --help                   Print this message and exit.\n\
   -v, --version                Print version number and exit.\n\
@@ -241,6 +244,7 @@ main(int argc, char **argv)
   int compile_kernel = 0;
   int compile_user = 0;
   int reverse = 0;
+  int dpdk = 0;
   Vector<const char *> instruction_files;
   HashTable<String, int> specializing;
 
@@ -290,6 +294,10 @@ particular purpose.\n");
 	goto bad_option;
       }
       output_file = clp->vstr;
+      break;
+
+     case DPDK_OPT:
+      dpdk = !clp->negated;
       break;
 
      case SOURCE_OPT:
@@ -446,11 +454,15 @@ particular purpose.\n");
 
   // output
   StringAccum header, source;
-  source << "/** click-compile: -w -fno-access-control */\n";
+  source << "/** click-compile: -w -fno-access-control ";
+  if (dpdk)
+      source << "-I/usr/local/include/dpdk ";
+  source << "*/\n";
   header << "#ifndef CLICK_" << package_name << "_HH\n"
 	 << "#define CLICK_" << package_name << "_HH\n"
-	 << "#include <click/package.hh>\n#include <click/element.hh>\n"
-         << "#ifdef HAVE_DPDK\n#include <click/dpdkdevice.hh>\n#endif\n";
+	 << "#include <click/package.hh>\n#include <click/element.hh>\n";
+  if (dpdk)
+      header << "#ifdef HAVE_DPDK\n#include <click/dpdkdevice.hh>\n#endif\n";
 
   specializer.output_package(package_name, suffix, source, errh);
   specializer.output(header, source);
